@@ -1,0 +1,89 @@
+services:
+  config-server:
+    container_name: config-server
+    build:
+      context: config-server
+      dockerfile: Dockerfile
+    networks:
+      bayrktlihn:
+        ipv4_address: 192.168.0.4
+    restart: unless-stopped
+    environment:
+      DISCOVERY_SERVER_ENDPOINT: http://192.168.0.5:8761/eureka
+    ports:
+      - "8888:8888"
+  discovery-server:
+    container_name: discovery-server
+    build:
+      context: discovery-server
+      dockerfile: Dockerfile
+    networks:
+      bayrktlihn:
+        ipv4_address: 192.168.0.5
+    restart: unless-stopped
+    environment:
+      SPRING_CONFIG_IMPORT: optional:configserver:http://192.168.0.4:8888
+    ports:
+      - "8761:8761"
+  product-service-0:
+    container_name: product-service-0
+    build:
+      context: product-service
+      dockerfile: Dockerfile
+    networks:
+      bayrktlihn:
+        ipv4_address: 192.168.0.10
+    restart: unless-stopped
+    environment:
+      SPRING_CONFIG_IMPORT: optional:configserver:http://192.168.0.4:8888
+      DISCOVERY_SERVER_ENDPOINT: http://192.168.0.5:8761/eureka
+      SPRING_DATA_MONGODB_HOST: 192.168.0.2
+      SERVER_PORT: 8000
+  product-service-1:
+    container_name: product-service-1
+    build:
+      context: product-service
+      dockerfile: Dockerfile
+    networks:
+      bayrktlihn:
+        ipv4_address: 192.168.0.11
+    restart: unless-stopped
+    environment:
+      SPRING_CONFIG_IMPORT: optional:configserver:http://192.168.0.4:8888
+      DISCOVERY_SERVER_ENDPOINT: http://192.168.0.5:8761/eureka
+      SPRING_DATA_MONGODB_HOST: 192.168.0.2
+      SERVER_PORT: 8001
+  mongo:
+    restart: unless-stopped
+    container_name: mongo
+    image: mongo
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: bayrktlihn
+      MONGO_INITDB_ROOT_PASSWORD: bayrktlihn
+    ports:
+      - "27017:27017"
+    networks:
+      bayrktlihn:
+        ipv4_address: 192.168.0.2
+  mongo-express:
+    restart: unless-stopped
+    container_name: mongo-express
+    image: mongo-express
+    environment:
+      ME_CONFIG_MONGODB_SERVER: mongo
+      ME_CONFIG_MONGODB_PORT: 27017
+      ME_CONFIG_MONGODB_AUTH_USERNAME: bayrktlihn
+      ME_CONFIG_MONGODB_AUTH_PASSWORD: bayrktlihn
+    depends_on:
+      - mongo
+    ports:
+      - "8081:8081"
+    networks:
+      bayrktlihn:
+        ipv4_address: 192.168.0.3
+networks:
+  bayrktlihn:
+    ipam:
+      config:
+        - subnet: 192.168.0.0/24
+          gateway: 192.168.0.1

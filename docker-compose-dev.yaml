@@ -1,0 +1,35 @@
+services:
+  mongo:
+    restart: unless-stopped
+    container_name: mongo
+    image: mongo
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: bayrktlihn
+      MONGO_INITDB_ROOT_PASSWORD: bayrktlihn
+    ports:
+      - "27017:27017"
+    networks:
+      bayrktlihn:
+        ipv4_address: 192.168.0.2
+  mongo-express:
+    restart: unless-stopped
+    container_name: mongo-express
+    image: mongo-express
+    environment:
+      ME_CONFIG_MONGODB_SERVER: mongo
+      ME_CONFIG_MONGODB_PORT: 27017
+      ME_CONFIG_MONGODB_AUTH_USERNAME: bayrktlihn
+      ME_CONFIG_MONGODB_AUTH_PASSWORD: bayrktlihn
+    depends_on:
+      - mongo
+    ports:
+      - "8081:8081"
+    networks:
+      bayrktlihn:
+        ipv4_address: 192.168.0.3
+networks:
+  bayrktlihn:
+    ipam:
+      config:
+        - subnet: 192.168.0.0/24
+          gateway: 192.168.0.1
